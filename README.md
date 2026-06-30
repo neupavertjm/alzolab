@@ -21,6 +21,7 @@ short_description: Bilingual (ES/EN) web lab for corpus linguistics and NLP
 </p>
 
 <p align="center">
+  <a href="https://github.com/neupavertjm/alzolab/actions/workflows/ci.yml"><img src="https://github.com/neupavertjm/alzolab/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
   <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">
   <img src="https://img.shields.io/badge/spaCy-09A3D5?logo=spacy&logoColor=white" alt="spaCy">
