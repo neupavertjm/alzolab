@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { ArrowUpDown, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import UiButton from "../components/ui/UiButton.jsx";
+import DownloadCsvButton from "../components/ui/DownloadCsvButton.jsx";
 import { useCorpus } from "../context/CorpusContext.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import api, { apiErrorMessage } from "../lib/api.js";
@@ -42,6 +43,11 @@ export default function TermsPage() {
       <section className="flex flex-wrap items-end gap-3 rounded-xl border border-line bg-white p-4 shadow-card dark:border-white/10 dark:bg-navy-900">
         {[['min_words', t('Mín. palabras')], ['max_words', t('Máx. palabras')], ['min_frequency', t('Frecuencia mín.')], ['top_n', t('Máx. resultados')]].map(([key, label]) => <label key={key} className="text-xs font-semibold text-slate-500 dark:text-slate-300"><span className="mb-1 block">{label}</span><input type="number" min="1" max={key === 'top_n' ? 500 : 8} value={params[key]} onChange={(event) => update(key, event.target.value)} className={`${inputClass} w-28`} /></label>)}
         <UiButton onClick={extract} loading={loading} leftIcon={<Sparkles size={15} />}>{t("Extraer términos")}</UiButton>
+        <DownloadCsvButton
+          rows={sorted}
+          headers={[{ key: "term", label: t("Término") }, { key: "cvalue", label: "C-value" }, { key: "frequency", label: t("Frecuencia") }, { key: "words", label: t("Palabras") }, { key: "nested_in", label: t("Anidado en") }]}
+          filename="alzolab-terminologia.csv"
+        />
         {terms.length > 0 && <span className="pb-2 font-mono text-[11px] text-slate-400">{cached ? t("análisis reutilizado de caché") : t("análisis calculado")}</span>}
       </section>
 

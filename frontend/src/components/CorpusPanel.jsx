@@ -1,13 +1,15 @@
 import React from "react";
-import { Trash2 } from "lucide-react";
+import { Redo2, Trash2, Undo2 } from "lucide-react";
 import { useCorpus } from "../context/CorpusContext.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import UiButton from "./ui/UiButton.jsx";
 
 // Lista de documentos del corpus en sesión, con conteo de caracteres y borrado.
 export default function CorpusPanel() {
-  const { entries, removeEntry, clearCorpus, stats } = useCorpus();
+  const { entries, removeEntry, clearCorpus, undo, redo, canUndo, canRedo, stats } = useCorpus();
   const { t, locale } = useI18n();
+
+  const histBtn = "rounded-lg p-1.5 text-slate-400 transition hover:bg-paper-100 hover:text-navy disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-white/5 dark:hover:text-slate-100";
 
   return (
     <section className="rounded-xl border border-line bg-white p-4 shadow-card dark:border-white/10 dark:bg-navy-900">
@@ -15,11 +17,19 @@ export default function CorpusPanel() {
         <h2 className="font-brand text-base font-semibold text-navy dark:text-slate-100">
           {t("Corpus en sesión")}
         </h2>
-        {entries.length > 0 && (
-          <UiButton variant="ghost" size="sm" onClick={clearCorpus} leftIcon={<Trash2 size={14} />}>
-            {t("Vaciar")}
-          </UiButton>
-        )}
+        <div className="flex items-center gap-1">
+          <button onClick={undo} disabled={!canUndo} title={t("Deshacer")} aria-label={t("Deshacer")} className={histBtn}>
+            <Undo2 size={15} />
+          </button>
+          <button onClick={redo} disabled={!canRedo} title={t("Rehacer")} aria-label={t("Rehacer")} className={histBtn}>
+            <Redo2 size={15} />
+          </button>
+          {entries.length > 0 && (
+            <UiButton variant="ghost" size="sm" onClick={clearCorpus} leftIcon={<Trash2 size={14} />}>
+              {t("Vaciar")}
+            </UiButton>
+          )}
+        </div>
       </div>
       <p className="mb-3 font-mono text-[11px] text-slate-400">
         {t(stats.count === 1 ? "{n} documento" : "{n} documentos", { n: stats.count })} ·{" "}

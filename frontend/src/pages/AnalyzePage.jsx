@@ -3,6 +3,7 @@ import { BarChart3, Database, Languages, Play, Tags } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import UiButton from "../components/ui/UiButton.jsx";
+import DownloadCsvButton from "../components/ui/DownloadCsvButton.jsx";
 import { useCorpus } from "../context/CorpusContext.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import api, { apiErrorMessage } from "../lib/api.js";
@@ -18,10 +19,13 @@ function MetricCard({ label, value, note }) {
   return <div className="rounded-xl border border-line bg-white p-4 shadow-card dark:border-white/10 dark:bg-navy-900"><p className="font-mono text-[11px] uppercase tracking-wide text-slate-400">{label}</p><p className="mt-1 font-brand text-3xl font-semibold text-navy dark:text-white">{value}</p><p className="mt-1 text-xs text-slate-400">{note}</p></div>;
 }
 
-function Ranking({ title, icon: Icon, items }) {
+function Ranking({ title, icon: Icon, items, action }) {
   return (
     <section className="rounded-xl border border-line bg-white p-5 shadow-card dark:border-white/10 dark:bg-navy-900">
-      <h3 className="mb-3 flex items-center gap-2 font-brand text-lg font-semibold text-navy dark:text-slate-100"><Icon size={17} className="text-orange" />{title}</h3>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 font-brand text-lg font-semibold text-navy dark:text-slate-100"><Icon size={17} className="text-orange" />{title}</h3>
+        {action}
+      </div>
       <div className="max-h-72 overflow-y-auto">
         {items.map((item, index) => <div key={item.label} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 border-b border-line py-2 text-sm last:border-0 dark:border-white/10"><span className="font-mono text-xs text-slate-400">{String(index + 1).padStart(2, "0")}</span><span className="truncate font-medium text-navy dark:text-slate-200">{item.label}</span><span className="rounded bg-orange-soft px-2 py-0.5 font-mono text-xs font-bold text-orange-dark dark:bg-orange/10 dark:text-orange">{item.count}</span></div>)}
       </div>
@@ -91,14 +95,17 @@ export default function AnalyzePage() {
       </div>
 
       <section className="rounded-xl border border-line bg-white p-5 shadow-card dark:border-white/10 dark:bg-navy-900">
-        <h3 className="mb-4 flex items-center gap-2 font-brand text-lg font-semibold text-navy dark:text-slate-100"><BarChart3 size={17} className="text-orange" />{t("Distribución de categorías POS")}</h3>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h3 className="flex items-center gap-2 font-brand text-lg font-semibold text-navy dark:text-slate-100"><BarChart3 size={17} className="text-orange" />{t("Distribución de categorías POS")}</h3>
+          <DownloadCsvButton rows={chartData} headers={[{ key: "name", label: "POS" }, { key: "count", label: t("Tokens") }, { key: "percentage", label: "%" }]} filename="alzolab-pos.csv" />
+        </div>
         <div className="h-80 w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} margin={{ left: 0, right: 10, bottom: 45 }}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e3ddd1" /><XAxis dataKey="name" angle={-35} textAnchor="end" interval={0} tick={{ fontSize: 11 }} /><YAxis allowDecimals={false} tick={{ fontSize: 11 }} /><Tooltip formatter={(value, _name, props) => [`${value} (${(props.payload.percentage * 100).toFixed(1)}%)`, t("Tokens")]} /><Bar dataKey="count" fill="#EF7E32" radius={[5, 5, 0, 0]} /></BarChart></ResponsiveContainer></div>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Ranking title={t("Lemas frecuentes (sin stopwords)")} icon={Tags} items={analysis.lemmas} />
+        <Ranking title={t("Lemas frecuentes (sin stopwords)")} icon={Tags} items={analysis.lemmas} action={<DownloadCsvButton rows={analysis.lemmas} headers={[{ key: "label", label: t("Lema") }, { key: "count", label: t("Frecuencia") }]} filename="alzolab-lemas.csv" />} />
         <section className="rounded-xl border border-line bg-white p-5 shadow-card dark:border-white/10 dark:bg-navy-900">
-          <div className="mb-3 flex items-center justify-between"><h3 className="flex items-center gap-2 font-brand text-lg font-semibold text-navy dark:text-slate-100"><Database size={17} className="text-orange" />{t("N-gramas")}</h3><div className="rounded-lg border border-line p-1 text-xs dark:border-white/10">{[2, 3].map((size) => <button key={size} onClick={() => setNgramSize(size)} className={`rounded px-2 py-1 font-semibold ${ngramSize === size ? "bg-navy text-white" : "text-slate-400"}`}>{size === 2 ? t("Bigramas") : t("Trigramas")}</button>)}</div></div>
+          <div className="mb-3 flex items-center justify-between"><h3 className="flex items-center gap-2 font-brand text-lg font-semibold text-navy dark:text-slate-100"><Database size={17} className="text-orange" />{t("N-gramas")}</h3><div className="flex items-center gap-2"><DownloadCsvButton rows={ngrams} headers={[{ key: "label", label: t("N-grama") }, { key: "count", label: t("Frecuencia") }]} filename="alzolab-ngramas.csv" /><div className="rounded-lg border border-line p-1 text-xs dark:border-white/10">{[2, 3].map((size) => <button key={size} onClick={() => setNgramSize(size)} className={`rounded px-2 py-1 font-semibold ${ngramSize === size ? "bg-navy text-white" : "text-slate-400"}`}>{size === 2 ? t("Bigramas") : t("Trigramas")}</button>)}</div></div></div>
           <div className="max-h-72 overflow-y-auto">{ngrams.map((item, index) => <div key={item.label} className="grid grid-cols-[2rem_1fr_auto] gap-2 border-b border-line py-2 text-sm last:border-0 dark:border-white/10"><span className="font-mono text-xs text-slate-400">{String(index + 1).padStart(2, "0")}</span><span className="font-mono text-xs text-navy dark:text-slate-200">{item.label}</span><span className="font-mono text-xs font-bold text-orange">{item.count}</span></div>)}</div>
         </section>
       </div>

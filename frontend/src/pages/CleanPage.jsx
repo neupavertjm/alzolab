@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Eye, Plus, Sparkles, Trash2, WandSparkles } from "lucide-react";
+import { Plus, Sparkles, Trash2, WandSparkles } from "lucide-react";
 import { toast } from "sonner";
 import UiButton from "../components/ui/UiButton.jsx";
 import { useCorpus } from "../context/CorpusContext.jsx";
@@ -25,13 +25,15 @@ function TextDiff({ before, after }) {
 }
 
 export default function CleanPage() {
-  const { entries, replaceTexts } = useCorpus();
+  const { entries, replaceTexts, undo } = useCorpus();
   const { t } = useI18n();
   const [presets, setPresets] = useState([]);
   const [rules, setRules] = useState([]);
   const [selectedId, setSelectedId] = useState(entries[0]?.id || "");
   const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [previewWarnings, setPreviewWarnings] = useState([]);
+  const [previewing, setPreviewing] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     api.get("/clean/presets").then(({ data }) => setPresets(data)).catch((err) => toast.error(apiErrorMessage(err)));
@@ -42,36 +44,59 @@ export default function CleanPage() {
   const updateRule = (index, key, value) => setRules((current) => current.map((rule, i) => i === index ? { ...rule, [key]: value } : rule));
   const removeRule = (index) => setRules((current) => current.filter((_, i) => i !== index));
 
-  const payload = (documents) => ({ documents: documents.map((entry) => ({ id: entry.id, text: entry.texto })), rules });
-  const validate = () => {
-    if (!rules.length) { toast.warning(t("Añade al menos una regla de limpieza.")); return false; }
-    if (rules.some((rule) => !rule.regex.trim())) { toast.warning(t("Las expresiones regulares no pueden estar vacías.")); return false; }
-    return true;
-  };
-
-  const showWarnings = (warnings = []) => warnings.forEach((warning) => toast.warning(warning));
-  const runPreview = async () => {
-    if (!validate() || !selected) return;
-    setLoading(true);
-    try {
-      const { data } = await api.post("/clean/preview", payload([selected]));
-      setPreview(data.documents[0]);
-      showWarnings(data.warnings);
-    } catch (err) { toast.error(apiErrorMessage(err)); } finally { setLoading(false); }
-  };
+  // Vista previa EN VIVO: se recalcula (con debounce) cada vez que cambian las
+  // reglas o el documento. La hace el backend, que usa el mismo motor `regex`
+  // que la limpieza real y la protege con timeout (ReDoS).
+  useEffect(() => {
+    const activeRules = rules.filter((rule) => rule.regex.trim());
+    if (!selected || activeRules.length === 0) {
+      setPreview(null);
+      setPreviewWarnings([]);
+      return undefined;
+    }
+    let cancelled = false;
+    setPreviewing(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await api.post("/clean/preview", {
+          documents: [{ id: selected.id, text: selected.texto }],
+          rules: activeRules,
+        });
+        if (cancelled) return;
+        setPreview(data.documents[0]);
+        setPreviewWarnings(data.warnings || []);
+      } catch {
+        if (!cancelled) {
+          setPreview(null);
+          setPreviewWarnings([]);
+        }
+      } finally {
+        if (!cancelled) setPreviewing(false);
+      }
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [rules, selected]);
 
   const applyAll = async () => {
-    if (!validate()) return;
+    const activeRules = rules.filter((rule) => rule.regex.trim());
+    if (activeRules.length === 0) return toast.warning(t("Añade al menos una regla de limpieza."));
     if (!window.confirm(t("Se modificarán {n} documento(s) del corpus. ¿Continuar?", { n: entries.length }))) return;
-    setLoading(true);
+    setApplying(true);
     try {
-      const { data } = await api.post("/clean/apply", payload(entries));
+      const { data } = await api.post("/clean/apply", {
+        documents: entries.map((entry) => ({ id: entry.id, text: entry.texto })),
+        rules: activeRules,
+      });
       replaceTexts(data.documents.map(({ id, after }) => ({ id, texto: after })));
-      showWarnings(data.warnings);
+      (data.warnings || []).forEach((warning) => toast.warning(warning));
       const changed = data.documents.filter((document) => document.changed).length;
-      toast.success(t("Limpieza aplicada: {n} documento(s) modificados.", { n: changed }));
-      setPreview(null);
-    } catch (err) { toast.error(apiErrorMessage(err)); } finally { setLoading(false); }
+      toast.success(t("Limpieza aplicada: {n} documento(s) modificados.", { n: changed }), {
+        action: { label: t("Deshacer"), onClick: undo },
+      });
+    } catch (err) { toast.error(apiErrorMessage(err)); } finally { setApplying(false); }
   };
 
   return (
@@ -101,16 +126,36 @@ export default function CleanPage() {
       </section>
 
       <section className="rounded-xl border border-line bg-white p-5 shadow-card dark:border-white/10 dark:bg-navy-900">
-        <h2 className="font-brand text-lg font-semibold text-navy dark:text-slate-100">{t("Vista previa antes / después")}</h2>
-        <select value={selected?.id || ""} onChange={(event) => { setSelectedId(event.target.value); setPreview(null); }} className="my-3 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-navy-950 dark:text-slate-100">
+        <div className="flex items-center justify-between">
+          <h2 className="font-brand text-lg font-semibold text-navy dark:text-slate-100">{t("Vista previa antes / después")}</h2>
+          {previewing && <span className="font-mono text-[11px] text-slate-400">{t("Actualizando…")}</span>}
+        </div>
+        <select value={selected?.id || ""} onChange={(event) => setSelectedId(event.target.value)} className="my-3 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-navy-950 dark:text-slate-100">
           {entries.map((entry) => <option key={entry.id} value={entry.id}>{entry.url}</option>)}
         </select>
+
+        {previewWarnings.length > 0 && (
+          <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+            {previewWarnings.map((warning, i) => <p key={i}>{warning}</p>)}
+          </div>
+        )}
+
         <div className="h-[26rem] overflow-auto rounded-lg border border-line bg-paper p-4 dark:border-white/10 dark:bg-navy-950">
-          {preview ? <><div className="mb-3 flex justify-between font-mono text-[11px] uppercase tracking-wide text-slate-400"><span>{t("{n} reemplazos", { n: preview.replacements })}</span><span>{preview.changed ? t("Modificado") : t("Sin cambios")}</span></div><TextDiff before={preview.before} after={preview.after} /></> : <p className="py-20 text-center text-sm text-slate-400">{t("Configura las reglas y genera una vista previa. El corpus aún no se modificará.")}</p>}
+          {preview ? (
+            <>
+              <div className="mb-3 flex justify-between font-mono text-[11px] uppercase tracking-wide text-slate-400">
+                <span>{t("{n} reemplazos", { n: preview.replacements })}</span>
+                <span>{preview.changed ? t("Modificado") : t("Sin cambios")}</span>
+              </div>
+              <TextDiff before={preview.before} after={preview.after} />
+            </>
+          ) : (
+            <p className="py-20 text-center text-sm text-slate-400">{t("Escribe una regla para ver en vivo lo que se elimina. El corpus no se modifica hasta que pulses «Aplicar».")}</p>
+          )}
         </div>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <UiButton onClick={runPreview} loading={loading} leftIcon={<Eye size={15} />}>{t("Vista previa")}</UiButton>
-          <UiButton variant="secondary" onClick={applyAll} loading={loading} leftIcon={<WandSparkles size={15} />}>{t("Aplicar al corpus")}</UiButton>
+
+        <div className="mt-4">
+          <UiButton variant="secondary" onClick={applyAll} loading={applying} leftIcon={<WandSparkles size={15} />}>{t("Aplicar al corpus")}</UiButton>
         </div>
       </section>
     </div>
