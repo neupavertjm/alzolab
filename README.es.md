@@ -141,10 +141,10 @@ sirve la API y el SPA estático desde el mismo origen (puerto 7860).
 **Juan Manuel Neupavert Alzola** — lingüista y desarrollador, en el cruce entre
 lingüística computacional y NLP.
 
-El nombre une **Alzo**, tomado de Alzola, y **lab**, laboratorio. La sílaba
-**la** actúa como bisagra: completa el apellido _Alzo·la_ y abre a la vez la
-palabra _lab_. Una firma personal que también describe el producto: un
-laboratorio para experimentar con corpus.
+El nombre une mi apellido, **Alzola**, con **lab** (laboratorio). Las dos
+palabras comparten la sílaba _la_, así que el apellido queda integrado en el
+nombre, que también describe la herramienta: un laboratorio para experimentar
+con corpus.
 
 - 📧 [neupavertjm@gmail.com](mailto:neupavertjm@gmail.com)
 - 💼 [LinkedIn](https://www.linkedin.com/in/juan-manuel-neupavert/)
