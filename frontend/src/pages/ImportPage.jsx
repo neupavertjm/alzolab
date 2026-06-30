@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Download, Globe, Sparkles, Upload } from "lucide-react";
+import { Download, FolderOpen, Globe, Sparkles, Upload } from "lucide-react";
 import { toast } from "sonner";
 import api, { apiErrorMessage } from "../lib/api.js";
 import { useCorpus } from "../context/CorpusContext.jsx";
@@ -11,6 +11,7 @@ const SOURCES = [
   { id: "web", label: "Páginas web", icon: Globe },
   { id: "wikipedia", label: "Wikipedia", icon: Sparkles },
   { id: "files", label: "Archivos", icon: Upload },
+  { id: "project", label: "Proyecto", icon: FolderOpen },
 ];
 
 const WEB_METHODS = [
@@ -29,7 +30,7 @@ const splitLines = (text) =>
     .filter(Boolean);
 
 export default function ImportPage() {
-  const { addEntries } = useCorpus();
+  const { addEntries, importEntries } = useCorpus();
   const { t, lang } = useI18n();
   const [source, setSource] = useState("web");
   const [loading, setLoading] = useState(false);
@@ -38,6 +39,7 @@ export default function ImportPage() {
   const [method, setMethod] = useState("trafilatura");
   const [queries, setQueries] = useState("");
   const [files, setFiles] = useState([]);
+  const [projectFile, setProjectFile] = useState(null);
 
   const applyResult = (data) => {
     const added = addEntries(data.entries);
@@ -97,6 +99,25 @@ export default function ImportPage() {
       const added = addEntries(data);
       toast.success(t("Corpus de ejemplo cargado ({n} documentos).", { n: added }));
     });
+
+  // Importa un corpus exportado en JSON (todo en cliente, validado).
+  const importProject = async () => {
+    if (!projectFile) return toast.warning(t("Selecciona un archivo de proyecto (.json)."));
+    setLoading(true);
+    try {
+      const raw = await projectFile.text();
+      const added = importEntries(JSON.parse(raw));
+      if (added === 0) {
+        toast.error(t("El archivo no contiene un corpus válido."));
+      } else {
+        toast.success(t("Proyecto cargado: {n} documento(s).", { n: added }));
+      }
+    } catch {
+      toast.error(t("El archivo no es un JSON válido."));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.12fr_0.95fr]">
@@ -222,6 +243,29 @@ export default function ImportPage() {
             <UiButton onClick={importFiles} loading={loading} leftIcon={<Upload size={15} />}>
               {t("Subir y extraer")}
             </UiButton>
+          </div>
+        )}
+
+        {source === "project" && (
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">
+              {t("Cargar un corpus exportado en JSON (desde la fase Exportar).")}
+            </label>
+            <input
+              type="file"
+              accept=".json,application/json"
+              onChange={(e) => setProjectFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-orange-soft file:px-4 file:py-2 file:text-sm file:font-semibold file:text-orange-dark hover:file:bg-orange/20 dark:text-slate-300"
+            />
+            {projectFile && (
+              <p className="font-mono text-xs text-slate-500">{projectFile.name}</p>
+            )}
+            <UiButton onClick={importProject} loading={loading} leftIcon={<FolderOpen size={15} />}>
+              {t("Cargar proyecto")}
+            </UiButton>
+            <p className="text-xs text-slate-400">
+              {t("Los documentos se añaden a tu corpus actual; vacíalo antes si quieres empezar de cero.")}
+            </p>
           </div>
         )}
       </section>

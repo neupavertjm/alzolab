@@ -42,6 +42,16 @@ export default {
   "Páginas web": "Web pages",
   Wikipedia: "Wikipedia",
   Archivos: "Files",
+  Proyecto: "Project",
+  "Cargar un corpus exportado en JSON (desde la fase Exportar).":
+    "Load a corpus exported as JSON (from the Export step).",
+  "Cargar proyecto": "Load project",
+  "Los documentos se añaden a tu corpus actual; vacíalo antes si quieres empezar de cero.":
+    "Documents are added to your current corpus; clear it first if you want to start fresh.",
+  "Selecciona un archivo de proyecto (.json).": "Select a project file (.json).",
+  "El archivo no es un JSON válido.": "The file is not valid JSON.",
+  "El archivo no contiene un corpus válido.": "The file does not contain a valid corpus.",
+  "Proyecto cargado: {n} documento(s).": "Project loaded: {n} document(s).",
   "URLs (una por línea)": "URLs (one per line)",
   Extraer: "Extract",
   "Cargar ejemplo": "Load sample",

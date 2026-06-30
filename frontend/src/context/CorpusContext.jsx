@@ -57,6 +57,20 @@ export function CorpusProvider({ children }) {
     return incoming.length;
   }, []);
 
+  // Carga un proyecto importado (corpus exportado en JSON). Valida la estructura,
+  // descarta lo que no sea un documento válido y fusiona evitando duplicar ids.
+  // Devuelve cuántos documentos válidos traía el archivo.
+  const importEntries = useCallback((data) => {
+    const valid = sanitizeEntries(data);
+    setAnalysis(null);
+    setEntries((prev) => {
+      const known = new Set(prev.map((e) => e.id));
+      const fresh = valid.filter((e) => !known.has(e.id));
+      return [...prev, ...fresh];
+    });
+    return valid.length;
+  }, []);
+
   const removeEntry = useCallback((id) => {
     setAnalysis(null);
     setEntries((prev) => prev.filter((e) => e.id !== id));
@@ -87,8 +101,8 @@ export function CorpusProvider({ children }) {
   );
 
   const value = useMemo(
-    () => ({ entries, addEntries, removeEntry, clearCorpus, replaceTexts, stats, analysis, setAnalysis }),
-    [entries, addEntries, removeEntry, clearCorpus, replaceTexts, stats, analysis]
+    () => ({ entries, addEntries, importEntries, removeEntry, clearCorpus, replaceTexts, stats, analysis, setAnalysis }),
+    [entries, addEntries, importEntries, removeEntry, clearCorpus, replaceTexts, stats, analysis]
   );
 
   return <CorpusContext.Provider value={value}>{children}</CorpusContext.Provider>;
