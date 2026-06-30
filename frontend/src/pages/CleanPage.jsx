@@ -96,6 +96,7 @@ export default function CleanPage() {
             </div>
           ))}
           <UiButton variant="ghost" size="sm" onClick={() => addRule()} leftIcon={<Plus size={14} />}>{t("Añadir regla manual")}</UiButton>
+          <p className="text-xs text-slate-400">{t("Puedes escribir cualquier expresión regular; se aplica de forma segura con un límite de tiempo.")}</p>
         </div>
       </section>
 
@@ -104,7 +105,7 @@ export default function CleanPage() {
         <select value={selected?.id || ""} onChange={(event) => { setSelectedId(event.target.value); setPreview(null); }} className="my-3 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-navy-950 dark:text-slate-100">
           {entries.map((entry) => <option key={entry.id} value={entry.id}>{entry.url}</option>)}
         </select>
-        <div className="min-h-64 rounded-lg border border-line bg-paper p-4 dark:border-white/10 dark:bg-navy-950">
+        <div className="h-[26rem] overflow-auto rounded-lg border border-line bg-paper p-4 dark:border-white/10 dark:bg-navy-950">
           {preview ? <><div className="mb-3 flex justify-between font-mono text-[11px] uppercase tracking-wide text-slate-400"><span>{t("{n} reemplazos", { n: preview.replacements })}</span><span>{preview.changed ? t("Modificado") : t("Sin cambios")}</span></div><TextDiff before={preview.before} after={preview.after} /></> : <p className="py-20 text-center text-sm text-slate-400">{t("Configura las reglas y genera una vista previa. El corpus aún no se modificará.")}</p>}
         </div>
         <div className="mt-4 flex flex-wrap gap-3">

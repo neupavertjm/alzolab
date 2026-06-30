@@ -12,10 +12,14 @@ from datetime import datetime
 
 
 def normalize_text(text):
-    """Normaliza a la forma NFKC: unifica variantes Unicode equivalentes
-    (ligaduras, anchos, acentos compuestos) para que el conteo y la búsqueda
-    sean coherentes entre fuentes."""
-    return unicodedata.normalize("NFKC", text or "")
+    """Normaliza a la forma NFKC y unifica los finales de línea.
+
+    NFKC unifica variantes Unicode equivalentes (ligaduras, anchos, acentos
+    compuestos). Además, los retornos de carro (\\r de Windows/Mac) se convierten
+    a \\n para que la limpieza por líneas no deje basura con texto CRLF.
+    """
+    normalized = unicodedata.normalize("NFKC", text or "")
+    return normalized.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def build_entry(mode, source, text):

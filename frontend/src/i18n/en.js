@@ -67,18 +67,27 @@ export default {
   "Elimina llamadas bibliográficas numéricas entre corchetes.":
     "Removes numeric bibliographic references in brackets.",
   "Quitar URLs": "Remove URLs",
-  "Elimina direcciones http, https y www.": "Removes http, https and www addresses.",
+  "Elimina direcciones http, https y www, sin llevarse la puntuación final.":
+    "Removes http, https and www addresses, without taking the trailing punctuation.",
   "Quitar emails": "Remove emails",
   "Elimina direcciones de correo electrónico.": "Removes email addresses.",
+  "Recortar líneas": "Trim lines",
+  "Quita los espacios al inicio y al final de cada línea.":
+    "Removes spaces at the start and end of each line.",
   "Unir líneas": "Join lines",
   "Convierte saltos simples en espacios y conserva los párrafos.":
     "Turns single breaks into spaces and keeps paragraphs.",
+  "Colapsar saltos": "Collapse line breaks",
+  "Reduce tres o más saltos de línea seguidos a dos (un párrafo).":
+    "Reduces three or more consecutive line breaks to two (one paragraph).",
   "Quitar dígitos sueltos": "Remove isolated digits",
-  "Elimina números aislados, pero no los integrados en palabras.":
-    "Removes standalone numbers, but not those embedded in words.",
+  "Elimina números aislados (incluidos decimales y miles), pero no los pegados a palabras o guiones.":
+    "Removes standalone numbers (including decimals and thousands), but not those attached to words or hyphens.",
   "Normalizar espacios": "Normalize spaces",
   "Reduce espacios y tabulaciones repetidos.": "Collapses repeated spaces and tabs.",
   "Añadir regla manual": "Add manual rule",
+  "Puedes escribir cualquier expresión regular; se aplica de forma segura con un límite de tiempo.":
+    "You can write any regular expression; it is applied safely with a time limit.",
   "Regla manual": "Manual rule",
   "Expresión regular": "Regular expression",
   "Reemplazo (vacío = eliminar)": "Replacement (empty = delete)",
