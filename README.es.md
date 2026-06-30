@@ -141,11 +141,6 @@ sirve la API y el SPA estático desde el mismo origen (puerto 7860).
 **Juan Manuel Neupavert Alzola** — lingüista y desarrollador, en el cruce entre
 lingüística computacional y NLP.
 
-El nombre une mi apellido, **Alzola**, con **lab** (laboratorio). Las dos
-palabras comparten la sílaba _la_, así que el apellido queda integrado en el
-nombre, que también describe la herramienta: un laboratorio para experimentar
-con corpus.
-
 - 📧 [neupavertjm@gmail.com](mailto:neupavertjm@gmail.com)
 - 💼 [LinkedIn](https://www.linkedin.com/in/juan-manuel-neupavert/)
 - 🐙 [GitHub @neupavertjm](https://github.com/neupavertjm)

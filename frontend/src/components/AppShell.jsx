@@ -117,7 +117,7 @@ export default function AppShell({ active, onSelect, dark, toggleTheme, children
 
       <footer className="border-t border-line py-4 text-center text-xs text-slate-400 dark:border-white/10">
         <button onClick={() => onSelect("about")} className="transition hover:text-orange">
-          AlzoLab · Juan Manuel Neupavert Alzola · MIT
+          Alzolab · Juan Manuel Neupavert Alzola · MIT
         </button>
       </footer>
     </div>

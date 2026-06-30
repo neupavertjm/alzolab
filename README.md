@@ -151,10 +151,6 @@ which serves the API and the static SPA from the same origin (port 7860).
 **Juan Manuel Neupavert Alzola** — linguist and developer, at the crossroads of
 computational linguistics and NLP.
 
-The name brings together my surname, **Alzola**, and **lab** (laboratory). The two
-words share the syllable _la_, so the surname stays embedded in the name, which
-also describes the tool: a laboratory for experimenting with corpora.
-
 - 📧 [neupavertjm@gmail.com](mailto:neupavertjm@gmail.com)
 - 💼 [LinkedIn](https://www.linkedin.com/in/juan-manuel-neupavert/)
 - 🐙 [GitHub @neupavertjm](https://github.com/neupavertjm)

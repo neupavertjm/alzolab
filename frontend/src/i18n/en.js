@@ -220,11 +220,4 @@ export default {
   "Del prototipo al producto": "From prototype to product",
   "El proyecto comenzó como un prototipo en Streamlit y evoluciona hacia una aplicación React + FastAPI. La lógica lingüística permanece separada de la interfaz y cubierta por pruebas: el objetivo no es solo obtener resultados, sino hacer visible un proceso técnico que se pueda revisar, repetir y ampliar.":
     "The project began as a Streamlit prototype and is evolving into a React + FastAPI application. The linguistic logic stays separate from the interface and covered by tests: the goal is not just to get results, but to make visible a technical process that can be reviewed, repeated and extended.",
-  "El origen del nombre": "The origin of the name",
-  "El nombre une mi apellido,": "The name brings together my surname,",
-  ", con «": " and “",
-  "» (laboratorio). Las dos palabras comparten la sílaba «":
-    "” (laboratory). The two words share the syllable “",
-  "», así que el apellido queda integrado en el nombre, que también describe la herramienta: un laboratorio para experimentar con corpus.":
-    "”, so the surname stays embedded in the name, which also describes the tool: a laboratory for experimenting with corpora.",
 };
