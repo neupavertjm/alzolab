@@ -34,7 +34,7 @@ terminología y exportarlos — todo desde el navegador, sin escribir código.
 Inspirada en herramientas de lingüística de corpus como Sketch Engine, pero
 ligera y autocontenida.
 
-🔗 **Demo en vivo:** _(añadir URL de Hugging Face Spaces tras el despliegue)_
+🔗 **Demo en vivo:** <https://jmneupavert-alzolab.hf.space>
 
 > **Estado:** reescritura sobre React + FastAPI de un prototipo previo en
 > Streamlit. Las seis fases del MVP están funcionales end-to-end; el trabajo
