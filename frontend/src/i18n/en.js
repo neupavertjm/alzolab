@@ -128,6 +128,9 @@ export default {
   "Modelo {lang} · hash {hash}": "{lang} model · hash {hash}",
   caché: "cache",
   "Análisis recuperado de la caché.": "Analysis retrieved from cache.",
+  "El corpus parece estar en {lang}, pero el análisis se hizo en {current}.":
+    "The corpus seems to be in {lang}, but the analysis ran in {current}.",
+  "Analizar en {lang}": "Analyze in {lang}",
   "Corpus analizado correctamente.": "Corpus analyzed successfully.",
   Palabras: "Words",
   "tokens alfabéticos": "alphabetic tokens",

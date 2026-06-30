@@ -46,6 +46,7 @@ class PosResult(CountResult):
 class AnalyzeResponse(BaseModel):
     corpus_hash: str
     cached: bool
+    detected_lang: Language | None = None  # idioma estimado del corpus (es/en) o None
     tokens: list[TokenResult]
     metrics: LexicalMetrics
     pos_distribution: list[PosResult]

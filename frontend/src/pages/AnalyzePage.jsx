@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BarChart3, Database, Play, Tags } from "lucide-react";
+import { BarChart3, Database, Languages, Play, Tags } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import UiButton from "../components/ui/UiButton.jsx";
@@ -31,19 +31,23 @@ function Ranking({ title, icon: Icon, items }) {
 
 export default function AnalyzePage() {
   const { entries, analysis, setAnalysis } = useCorpus();
-  const { t, lang, locale } = useI18n();
+  const { t, lang, setLang, locale } = useI18n();
   const [loading, setLoading] = useState(false);
   const [ngramSize, setNgramSize] = useState(2);
   const langName = t(lang === "es" ? "español" : "inglés");
+  const nameOf = (code) => t(code === "es" ? "español" : "inglés");
 
-  const runAnalysis = async () => {
+  const runAnalysis = async (analysisLang = lang) => {
     setLoading(true);
     try {
-      const { data } = await api.post("/analyze", { documents: entries.map((entry) => ({ id: entry.id, text: entry.texto })), lang });
+      const { data } = await api.post("/analyze", { documents: entries.map((entry) => ({ id: entry.id, text: entry.texto })), lang: analysisLang });
       setAnalysis(data);
       toast.success(data.cached ? t("Análisis recuperado de la caché.") : t("Corpus analizado correctamente."));
     } catch (error) { toast.error(apiErrorMessage(error)); } finally { setLoading(false); }
   };
+
+  // Cambia el idioma del laboratorio al detectado y reanaliza con él.
+  const switchAndReanalyze = (detected) => { setLang(detected); runAnalysis(detected); };
 
   const chartData = (analysis?.pos_distribution || []).map((item) => ({ ...item, name: t(POS_NAMES[item.label] || item.label) }));
   const ngrams = ngramSize === 2 ? analysis?.bigrams || [] : analysis?.trigrams || [];
@@ -61,8 +65,21 @@ export default function AnalyzePage() {
     );
   }
 
+  const mismatch = analysis.detected_lang && analysis.detected_lang !== lang;
+
   return (
     <div className="space-y-6">
+      {mismatch && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-orange/40 bg-orange-soft p-4 dark:bg-orange/10">
+          <p className="flex items-center gap-2 text-sm text-orange-dark dark:text-orange">
+            <Languages size={16} className="shrink-0" />
+            {t("El corpus parece estar en {lang}, pero el análisis se hizo en {current}.", { lang: nameOf(analysis.detected_lang), current: nameOf(lang) })}
+          </p>
+          <UiButton size="sm" onClick={() => switchAndReanalyze(analysis.detected_lang)} leftIcon={<Languages size={14} />}>
+            {t("Analizar en {lang}", { lang: nameOf(analysis.detected_lang) })}
+          </UiButton>
+        </div>
+      )}
       <header className="flex flex-wrap items-end justify-between gap-3"><div><div className="flex items-center gap-2"><h2 className="font-brand text-3xl font-semibold text-navy dark:text-slate-100">{t("Análisis")}</h2>{analysis.cached && <span className="rounded-full bg-emerald-100 px-2 py-1 font-mono text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">{t("caché")}</span>}</div><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t("Modelo {lang} · hash {hash}", { lang: langName, hash: analysis.corpus_hash.slice(0, 10) })}</p></div><UiButton variant="secondary" onClick={runAnalysis} loading={loading} leftIcon={<Play size={15} />}>{t("Recalcular")}</UiButton></header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

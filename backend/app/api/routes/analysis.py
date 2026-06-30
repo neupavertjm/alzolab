@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.core.analysis import ModelUnavailableError, analyze_text
+from app.core.langdetect import detect_language
 from app.schemas.analysis import AnalyzeRequest, AnalyzeResponse
 
 router = APIRouter(prefix="/analyze", tags=["analyze"])
@@ -23,6 +24,7 @@ def analyze_corpus(payload: AnalyzeRequest) -> dict:
     return {
         "corpus_hash": result.corpus_hash,
         "cached": cached,
+        "detected_lang": detect_language(text),
         "tokens": result.tokens,
         "metrics": {
             "words": words,
