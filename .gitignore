@@ -25,6 +25,7 @@ frontend/dist/
 
 # --- Material de trabajo (no va al repo) ---
 mockups/
+ROADMAP.md
 
 # --- Tooling local (no va al repo público) ---
 .claude/
