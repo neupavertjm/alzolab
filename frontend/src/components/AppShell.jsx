@@ -1,5 +1,5 @@
 import React from "react";
-import { UserRound } from "lucide-react";
+import { BookOpen, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { STAGES } from "../config/stages.js";
 import { useCorpus } from "../context/CorpusContext.jsx";
@@ -66,6 +66,14 @@ export default function AppShell({ active, onSelect, dark, toggleTheme, children
               {t("corpus")} · <span className="text-white">{stats.count} {t("docs")}</span> ·{" "}
               <span className="text-white">{stats.chars.toLocaleString("es")}</span> {t("car.")}
             </span>
+            <button
+              onClick={() => onSelect("how")}
+              className={`flex items-center gap-1.5 text-xs font-semibold transition hover:text-orange ${active === "how" ? "text-orange" : "text-slate-300"}`}
+              aria-label={t("Cómo funciona")}
+            >
+              <BookOpen size={15} />
+              <span className="hidden sm:inline">{t("Cómo funciona")}</span>
+            </button>
             <button
               onClick={() => onSelect("about")}
               className={`flex items-center gap-1.5 text-xs font-semibold transition hover:text-orange ${active === "about" ? "text-orange" : "text-slate-300"}`}

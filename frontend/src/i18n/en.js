@@ -4,6 +4,7 @@
 export default {
   // --- Cabecera / navegación ---
   "El proyecto": "About",
+  "Cómo funciona": "How it works",
   "corpus": "corpus",
   docs: "docs",
   "car.": "chars",

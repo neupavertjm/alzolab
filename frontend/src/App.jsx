@@ -5,6 +5,7 @@ import useTheme from "./hooks/useTheme.js";
 import ImportPage from "./pages/ImportPage.jsx";
 import CleanPage from "./pages/CleanPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
+import HowItWorksPage from "./pages/HowItWorksPage.jsx";
 
 const AnalyzePage = lazy(() => import("./pages/AnalyzePage.jsx"));
 const TermsPage = lazy(() => import("./pages/TermsPage.jsx"));
@@ -21,6 +22,7 @@ export default function App() {
         {active === "import" && <ImportPage />}
         {active === "clean" && <CleanPage />}
         {active === "about" && <AboutPage />}
+        {active === "how" && <HowItWorksPage />}
         {active === "analyze" && (
           <Suspense fallback={<p className="py-20 text-center text-sm text-slate-400">Cargando módulo de análisis…</p>}>
             <AnalyzePage />
