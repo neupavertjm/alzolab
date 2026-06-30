@@ -3,6 +3,7 @@ import { Download, Globe, Sparkles, Upload } from "lucide-react";
 import { toast } from "sonner";
 import api, { apiErrorMessage } from "../lib/api.js";
 import { useCorpus } from "../context/CorpusContext.jsx";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import CorpusPanel from "../components/CorpusPanel.jsx";
 import UiButton from "../components/ui/UiButton.jsx";
 
@@ -29,6 +30,7 @@ const splitLines = (text) =>
 
 export default function ImportPage() {
   const { addEntries } = useCorpus();
+  const { t, lang } = useI18n();
   const [source, setSource] = useState("web");
   const [loading, setLoading] = useState(false);
 
@@ -41,9 +43,10 @@ export default function ImportPage() {
     const added = addEntries(data.entries);
     (data.warnings || []).forEach((w) => toast.warning(w));
     if (added > 0) {
-      toast.success(`${added} documento${added !== 1 ? "s" : ""} añadido${added !== 1 ? "s" : ""} al corpus.`);
+      const s = added !== 1 ? "s" : "";
+      toast.success(t("{n} documento{s} añadido{s} al corpus.", { n: added, s }));
     } else if (!data.warnings?.length) {
-      toast.info("No se obtuvo ningún documento nuevo.");
+      toast.info(t("No se obtuvo ningún documento nuevo."));
     }
   };
 
@@ -60,24 +63,24 @@ export default function ImportPage() {
 
   const importWeb = () => {
     const list = splitLines(urls);
-    if (list.length === 0) return toast.warning("Pega al menos una URL.");
+    if (list.length === 0) return toast.warning(t("Pega al menos una URL."));
     return runImport(async () => {
-      const { data } = await api.post("/extract/web", { urls: list, method });
+      const { data } = await api.post("/extract/web", { urls: list, method, lang });
       applyResult(data);
     });
   };
 
   const importWikipedia = () => {
     const list = splitLines(queries);
-    if (list.length === 0) return toast.warning("Escribe al menos un término.");
+    if (list.length === 0) return toast.warning(t("Escribe al menos un término."));
     return runImport(async () => {
-      const { data } = await api.post("/extract/wikipedia", { queries: list, lang: "es" });
+      const { data } = await api.post("/extract/wikipedia", { queries: list, lang });
       applyResult(data);
     });
   };
 
   const importFiles = () => {
-    if (files.length === 0) return toast.warning("Selecciona al menos un archivo.");
+    if (files.length === 0) return toast.warning(t("Selecciona al menos un archivo."));
     return runImport(async () => {
       const form = new FormData();
       files.forEach((f) => form.append("files", f));
@@ -90,9 +93,9 @@ export default function ImportPage() {
 
   const loadSample = () =>
     runImport(async () => {
-      const { data } = await api.get("/corpus/sample");
+      const { data } = await api.get("/corpus/sample", { params: { lang } });
       const added = addEntries(data);
-      toast.success(`Corpus de ejemplo cargado (${added} documentos).`);
+      toast.success(t("Corpus de ejemplo cargado ({n} documentos).", { n: added }));
     });
 
   return (
@@ -100,13 +103,14 @@ export default function ImportPage() {
       <section className="rounded-xl border border-line bg-white p-5 shadow-card dark:border-white/10 dark:bg-navy-900">
         <div className="flex items-baseline justify-between">
           <h2 className="font-brand text-2xl font-semibold text-navy dark:text-slate-100">
-            Importar
+            {t("Importar")}
           </h2>
-          <span className="font-mono text-xs text-orange">Fase 1 de 6</span>
+          <span className="font-mono text-xs text-orange">{t("Fase {n} de 6", { n: 1 })}</span>
         </div>
         <p className="mb-5 mt-1 max-w-[60ch] text-sm text-slate-500 dark:text-slate-400">
-          Reúne textos desde varias fuentes. Cada documento se normaliza (NFKC) y los
-          duplicados exactos se descartan automáticamente.
+          {t(
+            "Reúne textos desde varias fuentes. Cada documento se normaliza (NFKC) y los duplicados exactos se descartan automáticamente."
+          )}
         </p>
 
         {/* Selector de fuente */}
@@ -126,7 +130,7 @@ export default function ImportPage() {
                 ].join(" ")}
               >
                 <Icon size={14} />
-                {s.label}
+                {t(s.label)}
               </button>
             );
           })}
@@ -135,7 +139,7 @@ export default function ImportPage() {
         {source === "web" && (
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">
-              URLs (una por línea)
+              {t("URLs (una por línea)")}
             </label>
             <textarea
               value={urls}
@@ -152,21 +156,21 @@ export default function ImportPage() {
               >
                 {WEB_METHODS.map((m) => (
                   <option key={m.value} value={m.value}>
-                    {m.label}
+                    {t(m.label)}
                   </option>
                 ))}
               </select>
               <UiButton onClick={importWeb} loading={loading} leftIcon={<Globe size={15} />}>
-                Extraer
+                {t("Extraer")}
               </UiButton>
               <UiButton variant="ghost" size="sm" onClick={loadSample} leftIcon={<Download size={14} />}>
-                Cargar ejemplo
+                {t("Cargar ejemplo")}
               </UiButton>
             </div>
             <p className="text-xs text-slate-400">
-              <strong>Automático</strong> detecta el cuerpo del artículo (ideal para
-              noticias). <strong>jusText</strong> y <strong>BeautifulSoup</strong> son
-              alternativas si el método automático falla.
+              {t(
+                "Automático detecta el cuerpo del artículo (ideal para noticias). jusText y BeautifulSoup son alternativas si el método automático falla."
+              )}
             </p>
           </div>
         )}
@@ -174,21 +178,25 @@ export default function ImportPage() {
         {source === "wikipedia" && (
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">
-              Términos de búsqueda (uno por línea)
+              {t("Términos de búsqueda (uno por línea)")}
             </label>
             <textarea
               value={queries}
               onChange={(e) => setQueries(e.target.value)}
               rows={5}
-              placeholder={"Lingüística de corpus\nProcesamiento de lenguaje natural"}
+              placeholder={
+                lang === "en"
+                  ? "Corpus linguistics\nNatural language processing"
+                  : "Lingüística de corpus\nProcesamiento de lenguaje natural"
+              }
               className={fieldClass}
             />
             <div className="flex flex-wrap items-center gap-3">
               <UiButton onClick={importWikipedia} loading={loading} leftIcon={<Sparkles size={15} />}>
-                Extraer de Wikipedia
+                {t("Extraer de Wikipedia")}
               </UiButton>
               <UiButton variant="ghost" size="sm" onClick={loadSample} leftIcon={<Download size={14} />}>
-                Cargar ejemplo
+                {t("Cargar ejemplo")}
               </UiButton>
             </div>
           </div>
@@ -197,7 +205,7 @@ export default function ImportPage() {
         {source === "files" && (
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">
-              Archivos (.txt, .pdf, .docx)
+              {t("Archivos (.txt, .pdf, .docx)")}
             </label>
             <input
               type="file"
@@ -208,11 +216,11 @@ export default function ImportPage() {
             />
             {files.length > 0 && (
               <p className="font-mono text-xs text-slate-500">
-                {files.length} archivo(s) seleccionado(s)
+                {t("{n} archivo(s) seleccionado(s)", { n: files.length })}
               </p>
             )}
             <UiButton onClick={importFiles} loading={loading} leftIcon={<Upload size={15} />}>
-              Subir y extraer
+              {t("Subir y extraer")}
             </UiButton>
           </div>
         )}

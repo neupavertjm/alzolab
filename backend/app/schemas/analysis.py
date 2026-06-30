@@ -1,6 +1,11 @@
 """Contrato JSON tipado de la fase Analizar."""
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+# Idiomas con modelo de spaCy disponible en el laboratorio.
+Language = Literal["es", "en"]
 
 
 class AnalysisDocument(BaseModel):
@@ -10,6 +15,7 @@ class AnalysisDocument(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     documents: list[AnalysisDocument] = Field(min_length=1, max_length=50)
+    lang: Language = "es"
 
 
 class TokenResult(BaseModel):

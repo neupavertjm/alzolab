@@ -5,8 +5,11 @@ strings y re-parsear. Cada documento extraído viaja como `CorpusEntry`.
 """
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field
+
+Language = Literal["es", "en"]
 
 
 class WebMethod(str, Enum):
@@ -41,6 +44,7 @@ class ExtractResult(BaseModel):
 class WebExtractRequest(BaseModel):
     urls: list[str] = Field(min_length=1, max_length=20)
     method: WebMethod = WebMethod.trafilatura
+    lang: Language = "es"  # solo afecta a la stoplist de jusText
 
 
 class WikipediaExtractRequest(BaseModel):

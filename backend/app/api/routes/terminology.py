@@ -17,7 +17,7 @@ def terminology(payload: TerminologyRequest) -> dict:
     if len(text) > 1_000_000:
         raise HTTPException(status_code=413, detail="El corpus supera el límite de 1.000.000 de caracteres.")
     try:
-        analysis, cached = analyze_text(text)
+        analysis, cached = analyze_text(text, payload.lang)
     except ModelUnavailableError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     terms = extract_terminology(

@@ -10,6 +10,14 @@ from typing import Any, Sequence
 CONTENT_POS = frozenset({"ADJ", "ADV", "NOUN", "PROPN", "VERB"})
 CACHE_MAX_ENTRIES = 8
 
+# Modelos de spaCy por idioma. Ambos son modelos pequeños, instalados como wheel
+# en requirements.txt, de modo que la imagen no necesita pasos extra.
+LANG_MODELS = {
+    "es": "es_core_news_sm",
+    "en": "en_core_web_sm",
+}
+DEFAULT_LANG = "es"
+
 
 @dataclass(frozen=True)
 class AnalyzedToken:
@@ -39,7 +47,7 @@ class ModelUnavailableError(RuntimeError):
     """El modelo configurado no está instalado o no puede cargarse."""
 
 
-_MODEL: Any | None = None
+_MODELS: dict[str, Any] = {}
 _MODEL_LOCK = Lock()
 _CACHE: OrderedDict[str, AnalysisData] = OrderedDict()
 _CACHE_LOCK = Lock()
@@ -73,24 +81,28 @@ def lexical_stats(words: Sequence[str], pos_tags: Sequence[str]) -> dict[str, fl
     }
 
 
-def _get_model() -> Any:
-    global _MODEL
-    if _MODEL is not None:
-        return _MODEL
+def _get_model(lang: str) -> Any:
+    model_name = LANG_MODELS.get(lang)
+    if model_name is None:
+        raise ModelUnavailableError(f"Idioma no soportado: {lang!r}.")
+    cached = _MODELS.get(lang)
+    if cached is not None:
+        return cached
     with _MODEL_LOCK:
-        if _MODEL is not None:
-            return _MODEL
+        cached = _MODELS.get(lang)
+        if cached is not None:
+            return cached
         try:
             import spacy
 
-            _MODEL = spacy.load("es_core_news_sm", disable=["ner"])
+            _MODELS[lang] = spacy.load(model_name, disable=["ner"])
         except (ImportError, OSError) as exc:
-            raise ModelUnavailableError("No se pudo cargar el modelo es_core_news_sm.") from exc
-    return _MODEL
+            raise ModelUnavailableError(f"No se pudo cargar el modelo {model_name}.") from exc
+    return _MODELS[lang]
 
 
-def _compute_analysis(text: str, corpus_hash: str) -> AnalysisData:
-    nlp = _get_model()
+def _compute_analysis(text: str, lang: str, corpus_hash: str) -> AnalysisData:
+    nlp = _get_model(lang)
     if len(text) >= nlp.max_length:
         nlp.max_length = len(text) + 1_000
     doc = nlp(text)
@@ -122,19 +134,20 @@ def _compute_analysis(text: str, corpus_hash: str) -> AnalysisData:
     )
 
 
-def analyze_text(text: str) -> tuple[AnalysisData, bool]:
-    """Analiza texto o devuelve el resultado cacheado para su SHA-256."""
+def analyze_text(text: str, lang: str = DEFAULT_LANG) -> tuple[AnalysisData, bool]:
+    """Analiza texto o devuelve el resultado cacheado para su (idioma, SHA-256)."""
     corpus_hash = sha256(text.encode("utf-8")).hexdigest()
+    cache_key = f"{lang}:{corpus_hash}"
     with _CACHE_LOCK:
-        cached = _CACHE.get(corpus_hash)
+        cached = _CACHE.get(cache_key)
         if cached is not None:
-            _CACHE.move_to_end(corpus_hash)
+            _CACHE.move_to_end(cache_key)
             return cached, True
 
-    result = _compute_analysis(text, corpus_hash)
+    result = _compute_analysis(text, lang, corpus_hash)
     with _CACHE_LOCK:
-        _CACHE[corpus_hash] = result
-        _CACHE.move_to_end(corpus_hash)
+        _CACHE[cache_key] = result
+        _CACHE.move_to_end(cache_key)
         while len(_CACHE) > CACHE_MAX_ENTRIES:
             _CACHE.popitem(last=False)
     return result, False

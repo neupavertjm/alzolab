@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: Laboratorio web de lingüística de corpus y NLP en español
+short_description: Bilingual (ES/EN) web lab for corpus linguistics and NLP
 ---
 
 <p align="center">
@@ -15,9 +15,9 @@ short_description: Laboratorio web de lingüística de corpus y NLP en español
 </p>
 
 <p align="center">
-  <strong>Laboratorio de lingüística de corpus</strong><br>
-  Pipeline de NLP end-to-end en el navegador: ingesta multifuente → limpieza →
-  análisis con spaCy → terminología → concordancias → exportación.
+  <strong>A corpus linguistics laboratory</strong><br>
+  End-to-end NLP pipeline in the browser: multi-source ingestion → cleaning →
+  spaCy analysis → terminology → concordances → export. Works in <strong>Spanish and English</strong>.
 </p>
 
 <p align="center">
@@ -28,77 +28,78 @@ short_description: Laboratorio web de lingüística de corpus y NLP en español
   <img src="https://img.shields.io/badge/License-MIT-EF7E32" alt="License: MIT">
 </p>
 
-Aplicación web para reunir textos desde varias fuentes, organizarlos en un
-corpus, limpiarlos, analizarlos morfosintácticamente con spaCy, extraer
-terminología y exportarlos — todo desde el navegador, sin escribir código.
-Inspirada en herramientas de lingüística de corpus como Sketch Engine, pero
-ligera y autocontenida.
+<p align="center"><strong>English</strong> · <a href="README.es.md">Español</a></p>
 
-🔗 **Demo en vivo:** <https://jmneupavert-alzolab.hf.space>
+A web app to gather texts from several sources, organize them into a corpus,
+clean them, analyze them morphosyntactically with spaCy, extract terminology and
+export them — all from the browser, without writing code. Inspired by corpus
+linguistics tools such as Sketch Engine, but lightweight and self-contained.
 
-> **Estado:** reescritura sobre React + FastAPI de un prototipo previo en
-> Streamlit. Las seis fases del MVP están funcionales end-to-end; el trabajo
-> pendiente se concentra en persistencia, CI, despliegue y ampliaciones futuras.
+🔗 **Live demo:** <https://jmneupavert-alzolab.hf.space>
 
 ---
 
-## El problema
+## The problem
 
-Construir un corpus para investigación lingüística o NLP suele implicar pegar
-scripts sueltos: uno para descargar páginas, otro para limpiar el HTML, otro
-para etiquetar con spaCy y otro para volcar a CSV. Es repetitivo y poco
-reproducible, sobre todo para quien viene de la lingüística y no quiere montar
-una infraestructura para cada experimento.
+Building a corpus for linguistic research or NLP usually means gluing together
+loose scripts: one to download pages, another to clean the HTML, another to tag
+with spaCy and another to dump to CSV. It is repetitive and hard to reproduce,
+especially for people coming from linguistics who do not want to set up an
+infrastructure for every experiment.
 
-## La solución
+## The solution
 
-Una única app con el flujo completo guiado en pestañas:
+A single app with the full workflow guided in tabs, available in **Spanish and
+English** (one switch changes both the interface and the analysis language):
 
-1. **Importar** — extrae documentos de páginas web (artículos y noticias, con
-   trafilatura / jusText / BeautifulSoup), Wikipedia o archivos (`.txt`, `.pdf`,
-   `.docx`), normaliza el texto y descarta duplicados. ✅
-2. **Limpiar** — reglas regex con vista previa _antes / después_. 🚧
-3. **Analizar** — etiquetado POS y morfológico con spaCy, distribución de
-   categorías, lemas frecuentes, n-gramas y métricas léxicas (TTR, hapax,
-   densidad). ✅
-4. **Terminología** — extracción de términos candidatos por filtro POS,
-   rankeados con **C-value** (Frantzi, Ananiadou & Mima, 2000). ✅
-5. **Concordancia (KWIC)** — busca una palabra y la muestra en su contexto. ✅
-6. **Exportar** — descarga del corpus o del análisis en `.txt`, `.json`, `.csv`. ✅
+1. **Import** — extract documents from web pages (articles and news, via
+   trafilatura / jusText / BeautifulSoup), Wikipedia or files (`.txt`, `.pdf`,
+   `.docx`), with NFKC normalization and deduplication.
+2. **Clean** — regex rules with a _before / after_ preview and a ReDoS guard.
+3. **Analyze** — POS and morphological tagging with spaCy, category distribution,
+   frequent lemmas, n-grams and lexical metrics (TTR, hapax, density), cached per corpus.
+4. **Terminology** — candidate terms by POS filter, ranked with **C-value**
+   (Frantzi, Ananiadou & Mima, 2000).
+5. **Concordance (KWIC)** — find a word or phrase and show it in context.
+6. **Export** — download the corpus or the analysis as `.txt`, `.json`, `.csv`.
 
-## Arquitectura
+## Architecture
 
 ```text
-backend/                  FastAPI (API REST + sirve el SPA en producción)
+backend/                  FastAPI (REST API + serves the SPA in production)
 ├─ app/
-│  ├─ main.py             App, CORS, montaje de /api y del build de React
-│  ├─ api/routes/         Endpoints (extract, corpus, …)
-│  ├─ core/               Lógica pura de corpus, sin framework (testeable a pelo)
-│  └─ schemas/            Modelos Pydantic (contrato JSON tipado)
-└─ tests/                 pytest sobre la lógica pura
+│  ├─ main.py             App, CORS, rate limiting, /api mount and React build
+│  ├─ api/routes/         Endpoints (extract, clean, analyze, terminology, …)
+│  ├─ core/               Pure corpus logic, framework-free (testable on its own)
+│  └─ schemas/            Pydantic models (typed JSON contract)
+└─ tests/                 pytest over the pure logic
 
 frontend/                 React 18 + Vite + TailwindCSS (SPA)
-└─ src/{App, pages/, components/, context/, hooks/, lib/}
+└─ src/{App, pages/, components/, context/, hooks/, i18n/, lib/}
 
-Dockerfile                Multi-stage: build de React → runtime FastAPI (1 contenedor)
+Dockerfile                Multi-stage: React build → FastAPI runtime (single container)
 ```
 
-La **lógica de corpus vive en `backend/app/core`**, desacoplada de FastAPI: cada
-función recibe datos y devuelve estructuras, de modo que se puede probar y
-reutilizar sin levantar el servidor. El contrato entre frontend y backend es
-**JSON tipado con Pydantic** (sin serializar a strings y re-parsear).
+The **corpus logic lives in `backend/app/core`**, decoupled from FastAPI: each
+function takes data and returns structures, so it can be tested and reused
+without starting the server. The frontend/backend contract is **typed JSON with
+Pydantic** (no serializing to strings and re-parsing).
+
+The interface is fully bilingual through a small custom i18n layer
+(`frontend/src/i18n`); the language selector also picks the spaCy model
+(`es_core_news_sm` / `en_core_web_sm`) used for analysis.
 
 ## Stack
 
 **Backend:** Python · FastAPI · spaCy · trafilatura · jusText · BeautifulSoup
 · Wikipedia-API · pypdf · python-docx
-**Frontend:** React 18 · Vite · TailwindCSS · axios · lucide-react · sonner
+**Frontend:** React 18 · Vite · TailwindCSS · axios · Recharts · lucide-react · sonner
 
-## Cómo ejecutar en local
+## Running locally
 
-Necesitas **dos procesos** en desarrollo (la API y Vite con hot-reload).
+You need **two processes** in development (the API and Vite with hot reload).
 
-**Backend** (puerto 8000):
+**Backend** (port 8000):
 
 ```powershell
 cd backend
@@ -108,7 +109,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-**Frontend** (puerto 5173, proxia `/api` al backend):
+**Frontend** (port 5173, proxies `/api` to the backend):
 
 ```powershell
 cd frontend
@@ -116,53 +117,49 @@ npm install
 npm run dev
 ```
 
-Abre <http://localhost:5173>.
+Open <http://localhost:5173>.
 
-### Tests del backend
+### Backend tests
 
 ```powershell
 cd backend
 pytest
 ```
 
-## Despliegue (Hugging Face Spaces · Docker)
+## Deployment (Hugging Face Spaces · Docker)
 
-Un único contenedor: el `Dockerfile` compila el frontend y arranca FastAPI, que
-sirve la API y el SPA estático desde el mismo origen (puerto 7860).
+A single container: the `Dockerfile` builds the frontend and starts FastAPI,
+which serves the API and the static SPA from the same origin (port 7860).
 
-1. Crea un Space de tipo **Docker**.
-2. Sube el repo (o conéctalo a GitHub).
-3. HF construye la imagen y publica la app. Coste cero; se duerme con la
-   inactividad y despierta en la primera visita.
+1. Create a **Docker** Space.
+2. Push the repo (or connect it to GitHub).
+3. HF builds the image and publishes the app. Zero cost; it sleeps on inactivity
+   and wakes up on the first visit.
 
 ## Roadmap
 
-- [x] Importar (web, Wikipedia, archivos) end-to-end.
-- [x] Limpiar (pipeline regex con vista previa y guardia anti-ReDoS).
-- [x] Analizar (spaCy con salida estructurada y caché por corpus).
-- [x] Terminología (C-value) y Concordancia (KWIC), con tests de casos conocidos.
-- [x] Exportar (txt / json / csv).
-- [ ] Capa de polisemia por embeddings (WSI), precomputada y servida como JSON.
+- [x] Import (web, Wikipedia, files) end-to-end.
+- [x] Clean (regex pipeline with preview and ReDoS guard).
+- [x] Analyze (spaCy with structured output and per-corpus cache).
+- [x] Terminology (C-value) and Concordance (KWIC), with known-case tests.
+- [x] Export (txt / json / csv).
+- [x] Bilingual ES/EN interface and analysis.
+- [ ] Embeddings-based polysemy layer (WSI), precomputed and served as JSON.
 
-## Autor
+## Author
 
-**Juan Manuel Neupavert Alzola** — lingüista y desarrollador, en el cruce entre
-lingüística computacional y NLP.
+**Juan Manuel Neupavert Alzola** — linguist and developer, at the crossroads of
+computational linguistics and NLP.
 
-AlzoLab nace de una dificultad concreta: construir un corpus obliga a combinar
-extractores, scripts de limpieza, analizadores y exportadores que rara vez
-comparten una interfaz o un formato. El proyecto reúne ese recorrido en una
-herramienta guiada y reproducible para trabajar con lenguaje desde el navegador.
-
-El nombre une **Alzo**, tomado de Alzola, y **lab**, laboratorio. La sílaba
-**la** funciona como bisagra: completa el apellido _Alzo·la_ y abre a la vez la
-palabra _lab_. Es una firma personal y una descripción del producto: un
-laboratorio para experimentar con corpus.
+The name joins **Alzo**, taken from Alzola, and **lab**, laboratory. The syllable
+**la** acts as a hinge: it completes the surname _Alzo·la_ and at the same time
+opens the word _lab_. A personal signature that also describes the product: a
+laboratory for experimenting with corpora.
 
 - 📧 [neupavertjm@gmail.com](mailto:neupavertjm@gmail.com)
 - 💼 [LinkedIn](https://www.linkedin.com/in/juan-manuel-neupavert/)
 - 🐙 [GitHub @neupavertjm](https://github.com/neupavertjm)
 
-## Licencia
+## License
 
-Distribuido bajo licencia **MIT** (ver [LICENSE](LICENSE)).
+Distributed under the **MIT** license (see [LICENSE](LICENSE)).

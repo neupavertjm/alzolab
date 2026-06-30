@@ -15,7 +15,7 @@ def analyze_corpus(payload: AnalyzeRequest) -> dict:
     if len(text) > MAX_CORPUS_CHARS:
         raise HTTPException(status_code=413, detail="El corpus supera el límite de 1.000.000 de caracteres.")
     try:
-        result, cached = analyze_text(text)
+        result, cached = analyze_text(text, payload.lang)
     except ModelUnavailableError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 

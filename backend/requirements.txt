@@ -17,6 +17,7 @@ regex==2024.11.6               # regex de usuario con timeout (guardia anti-ReDo
 # --- Análisis (carga diferida: no penaliza la fase Importar) ---
 spacy==3.8.14
 es-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.8.0/es_core_news_sm-3.8.0-py3-none-any.whl
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 
 # --- Tests ---
 pytest==8.3.4

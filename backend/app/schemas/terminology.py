@@ -2,11 +2,12 @@
 
 from pydantic import BaseModel, Field
 
-from app.schemas.analysis import AnalysisDocument
+from app.schemas.analysis import AnalysisDocument, Language
 
 
 class TerminologyRequest(BaseModel):
     documents: list[AnalysisDocument] = Field(min_length=1, max_length=50)
+    lang: Language = "es"
     min_words: int = Field(default=2, ge=1, le=5)
     max_words: int = Field(default=5, ge=1, le=8)
     min_frequency: int = Field(default=2, ge=1, le=1000)

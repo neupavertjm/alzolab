@@ -38,12 +38,17 @@ def fetch_html(url, timeout=15):
     return UnicodeDammit(data).unicode_markup or data.decode("utf-8", errors="replace")
 
 
-def extract_justext(html, lang="Spanish"):
+# jusText usa el nombre completo del idioma para su lista de palabras vacías.
+_JUSTEXT_STOPLIST = {"es": "Spanish", "en": "English"}
+
+
+def extract_justext(html, lang="es"):
     """Extrae el texto principal de un HTML descartando 'boilerplate' (menús,
-    pies, barras laterales) con jusText."""
+    pies, barras laterales) con jusText, usando la stoplist del idioma dado."""
+    stoplist = _JUSTEXT_STOPLIST.get(lang, "Spanish")
     paragraphs = justext.justext(
         html,
-        justext.get_stoplist(lang),
+        justext.get_stoplist(stoplist),
         length_low=10,
         stopwords_low=0.1,
         stopwords_high=0.9,

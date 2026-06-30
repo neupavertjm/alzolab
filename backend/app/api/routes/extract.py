@@ -37,7 +37,7 @@ def extract_web(payload: WebExtractRequest) -> ExtractResult:
             else:
                 html = extractors.fetch_html(url)
                 text = (
-                    extractors.extract_justext(html)
+                    extractors.extract_justext(html, payload.lang)
                     if payload.method == WebMethod.justext
                     else extractors.extract_bs(html)
                 )
