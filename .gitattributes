@@ -1,0 +1,9 @@
+# Normaliza los finales de línea a LF: el repo se construye en Linux (Docker / HF).
+* text=auto eol=lf
+
+# Binarios: que Git no toque sus finales de línea.
+*.png binary
+*.jpg binary
+*.ico binary
+*.whl binary
+*.png filter=lfs diff=lfs merge=lfs -text

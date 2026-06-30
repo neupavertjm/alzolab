@@ -1,0 +1,23 @@
+# --- API ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20      # subida de archivos (UploadFile)
+
+# --- Ingesta (fase Importar) ---
+requests==2.32.5
+trafilatura==2.0.0
+jusText==3.0.2
+beautifulsoup4==4.13.5
+lxml==5.3.0
+Wikipedia-API==0.8.1
+pypdf==5.1.0
+python-docx==1.2.0
+regex==2024.11.6               # regex de usuario con timeout (guardia anti-ReDoS)
+
+# --- Análisis (carga diferida: no penaliza la fase Importar) ---
+spacy==3.8.14
+es-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.8.0/es_core_news_sm-3.8.0-py3-none-any.whl
+
+# --- Tests ---
+pytest==8.3.4
+httpx==0.28.1                 # cliente para fastapi.testclient

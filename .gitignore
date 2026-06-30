@@ -1,0 +1,36 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- spaCy model cache (se instala desde requirements) ---
+*.whl
+
+# --- Node / frontend ---
+node_modules/
+frontend/dist/
+.vite/
+*.local
+
+# --- Entorno ---
+.env
+.env.*
+!.env.example
+
+# --- Material de trabajo (no va al repo) ---
+mockups/
+
+# --- Tooling local (no va al repo público) ---
+.claude/
+
+# --- Editores / SO ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
