@@ -38,6 +38,28 @@ linguistics tools such as Sketch Engine, but lightweight and self-contained.
 
 🔗 **Live demo:** <https://jmneupavert-alzolab.hf.space>
 
+## Screenshots
+
+**Import** — gather texts from web pages, Wikipedia or files.
+
+![Import](docs/importar.png)
+
+**Clean** — regex rules with a live before/after preview.
+
+![Clean](docs/limpiar.png)
+
+**Analyze** — POS distribution, lemmas, n-grams and lexical metrics with spaCy.
+
+![Analyze](docs/analizar.png)
+
+**Concordance (KWIC)** — a word in its context.
+
+![Concordance](docs/concordancia.png)
+
+**Export** — corpus or analysis as txt / json / csv.
+
+![Export](docs/exportar.png)
+
 ---
 
 ## The problem

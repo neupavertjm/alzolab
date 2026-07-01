@@ -27,6 +27,28 @@ ligera y autocontenida.
 
 🔗 **Demo en vivo:** <https://jmneupavert-alzolab.hf.space>
 
+## Capturas
+
+**Importar** — reúne textos de páginas web, Wikipedia o archivos.
+
+![Importar](docs/importar.png)
+
+**Limpiar** — reglas regex con vista previa en vivo antes/después.
+
+![Limpiar](docs/limpiar.png)
+
+**Analizar** — distribución POS, lemas, n-gramas y métricas léxicas con spaCy.
+
+![Analizar](docs/analizar.png)
+
+**Concordancia (KWIC)** — la palabra en su contexto.
+
+![Concordancia](docs/concordancia.png)
+
+**Exportar** — corpus o análisis en txt / json / csv.
+
+![Exportar](docs/exportar.png)
+
 ---
 
 ## El problema
