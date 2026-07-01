@@ -95,7 +95,10 @@ def _get_model(lang: str) -> Any:
         try:
             import spacy
 
-            _MODELS[lang] = spacy.load(model_name, disable=["ner"])
+            # Solo usamos POS, lema y morfología: desactivar el parser (pesado en
+            # memoria) y el NER reduce el consumo y acelera la carga y el análisis,
+            # clave en el plan gratuito de Hugging Face.
+            _MODELS[lang] = spacy.load(model_name, disable=["ner", "parser"])
         except (ImportError, OSError) as exc:
             raise ModelUnavailableError(f"No se pudo cargar el modelo {model_name}.") from exc
     return _MODELS[lang]
