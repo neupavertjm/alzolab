@@ -10,7 +10,7 @@ import api, { apiErrorMessage } from "../lib/api.js";
 const inputClass = "rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:border-orange focus:outline-none dark:border-white/10 dark:bg-navy-950 dark:text-slate-100";
 
 export default function KwicPage() {
-  const { entries } = useCorpus();
+  const { selectedEntries } = useCorpus();
   const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [windowSize, setWindowSize] = useState(7);
@@ -21,10 +21,11 @@ export default function KwicPage() {
   const search = async (event) => {
     event.preventDefault();
     if (!query.trim()) return toast.warning(t("Escribe una palabra o frase."));
+    if (selectedEntries.length === 0) return toast.warning(t("Selecciona al menos un documento."));
     setLoading(true);
     try {
       const { data } = await api.post("/concordance", {
-        documents: entries.map((entry) => ({ id: entry.id, label: entry.url, text: entry.texto })),
+        documents: selectedEntries.map((entry) => ({ id: entry.id, label: entry.url, text: entry.texto })),
         query: query.trim(), window: Number(windowSize), max_results: Number(maxResults),
       });
       setResults(data.results);

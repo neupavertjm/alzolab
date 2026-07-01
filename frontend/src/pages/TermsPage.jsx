@@ -10,7 +10,7 @@ import api, { apiErrorMessage } from "../lib/api.js";
 const inputClass = "rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:border-orange focus:outline-none dark:border-white/10 dark:bg-navy-950 dark:text-slate-100";
 
 export default function TermsPage() {
-  const { entries } = useCorpus();
+  const { selectedEntries } = useCorpus();
   const { t, lang, locale } = useI18n();
   const [params, setParams] = useState({ min_words: 2, max_words: 5, min_frequency: 2, top_n: 100 });
   const [terms, setTerms] = useState([]);
@@ -21,10 +21,11 @@ export default function TermsPage() {
   const update = (key, value) => setParams((current) => ({ ...current, [key]: Number(value) }));
   const extract = async () => {
     if (params.min_words > params.max_words) return toast.warning(t("El mínimo de palabras no puede superar el máximo."));
+    if (selectedEntries.length === 0) return toast.warning(t("Selecciona al menos un documento."));
     setLoading(true);
     try {
       const { data } = await api.post("/terminology", {
-        documents: entries.map((entry) => ({ id: entry.id, text: entry.texto })), lang, ...params,
+        documents: selectedEntries.map((entry) => ({ id: entry.id, text: entry.texto })), lang, ...params,
       });
       setTerms(data.terms); setCached(data.analysis_cached);
       toast.success(t("{n} términos candidatos obtenidos.", { n: data.terms.length }));

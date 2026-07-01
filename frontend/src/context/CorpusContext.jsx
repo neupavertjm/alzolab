@@ -1,6 +1,6 @@
-// Estado del corpus en sesión, persistido en el navegador (localStorage) y con
-// historial de deshacer/rehacer. Los documentos sobreviven a recargas y a cerrar
-// la pestaña en el mismo dispositivo. No se envía nada al servidor.
+// Estado del corpus en sesión, persistido en el navegador (localStorage), con
+// historial deshacer/rehacer y selección de documentos activos. Los documentos
+// sobreviven a recargas y a cerrar la pestaña. No se envía nada al servidor.
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 const CorpusContext = createContext(null);
@@ -8,7 +8,6 @@ const STORAGE_KEY = "alzolab-corpus";
 const HISTORY_LIMIT = 30;
 
 // Valida que lo cargado/importado tenga la forma de un documento de corpus.
-// Sirve tanto al arrancar (datos viejos o corruptos) como para las importaciones.
 function sanitizeEntries(data) {
   if (!Array.isArray(data)) return [];
   return data.filter(
@@ -33,10 +32,10 @@ function loadCorpus() {
 
 export function CorpusProvider({ children }) {
   const [entries, setEntries] = useState(loadCorpus);
-  // El análisis NO se persiste: puede ser grande y el backend ya lo cachea.
   const [analysis, setAnalysis] = useState(null);
-  // Contador que fuerza re-render cuando cambia el historial (vive en refs).
   const [historyVersion, setHistoryVersion] = useState(0);
+  // Documentos activos para las fases de análisis (por defecto, todos).
+  const [selectedIds, setSelectedIds] = useState(() => new Set(loadCorpus().map((e) => e.id)));
 
   const entriesRef = useRef(entries);
   useEffect(() => {
@@ -45,7 +44,6 @@ export function CorpusProvider({ children }) {
   const pastRef = useRef([]);
   const futureRef = useRef([]);
 
-  // Persiste el corpus en cada cambio (best-effort ante el cupo del navegador).
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
@@ -54,38 +52,52 @@ export function CorpusProvider({ children }) {
     }
   }, [entries]);
 
-  // Registra el estado actual antes de un cambio (para poder deshacerlo) y limpia
-  // la pila de rehacer, porque un cambio nuevo invalida el futuro anterior.
+  // Poda de la selección: quita ids que ya no existen en el corpus.
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const ids = new Set(entries.map((e) => e.id));
+      let changed = false;
+      const next = new Set();
+      prev.forEach((id) => (ids.has(id) ? next.add(id) : (changed = true)));
+      return changed ? next : prev;
+    });
+  }, [entries]);
+
   const record = useCallback(() => {
     pastRef.current = [...pastRef.current.slice(-(HISTORY_LIMIT - 1)), entriesRef.current];
     futureRef.current = [];
     setHistoryVersion((v) => v + 1);
   }, []);
 
-  // Añade documentos evitando duplicar por id (el backend ya deduplica por texto).
+  // Marca como activos los ids nuevos (documentos recién añadidos).
+  const selectNewIds = useCallback((ids) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+  }, []);
+
   const addEntries = useCallback((incoming) => {
     record();
     setAnalysis(null);
-    setEntries((prev) => {
-      const known = new Set(prev.map((e) => e.id));
-      const fresh = incoming.filter((e) => !known.has(e.id));
-      return [...prev, ...fresh];
-    });
+    const known = new Set(entriesRef.current.map((e) => e.id));
+    const fresh = incoming.filter((e) => !known.has(e.id));
+    setEntries((prev) => [...prev, ...fresh]);
+    selectNewIds(fresh.map((e) => e.id));
     return incoming.length;
-  }, [record]);
+  }, [record, selectNewIds]);
 
-  // Carga un proyecto importado (corpus exportado en JSON), validado y fusionado.
   const importEntries = useCallback((data) => {
     const valid = sanitizeEntries(data);
     record();
     setAnalysis(null);
-    setEntries((prev) => {
-      const known = new Set(prev.map((e) => e.id));
-      const fresh = valid.filter((e) => !known.has(e.id));
-      return [...prev, ...fresh];
-    });
+    const known = new Set(entriesRef.current.map((e) => e.id));
+    const fresh = valid.filter((e) => !known.has(e.id));
+    setEntries((prev) => [...prev, ...fresh]);
+    selectNewIds(fresh.map((e) => e.id));
     return valid.length;
-  }, [record]);
+  }, [record, selectNewIds]);
 
   const removeEntry = useCallback((id) => {
     record();
@@ -99,7 +111,6 @@ export function CorpusProvider({ children }) {
     setEntries([]);
   }, [record]);
 
-  // Sustituye solo el texto (lo usa la limpieza): conserva fuente, fecha e id.
   const replaceTexts = useCallback((updates) => {
     record();
     setAnalysis(null);
@@ -109,32 +120,53 @@ export function CorpusProvider({ children }) {
     );
   }, [record]);
 
+  const restore = useCallback((snapshot) => {
+    setAnalysis(null);
+    setEntries(snapshot);
+    setSelectedIds(new Set(snapshot.map((e) => e.id))); // tras deshacer/rehacer, todos activos
+  }, []);
+
   const undo = useCallback(() => {
     if (pastRef.current.length === 0) return;
     const previous = pastRef.current[pastRef.current.length - 1];
     pastRef.current = pastRef.current.slice(0, -1);
     futureRef.current = [...futureRef.current, entriesRef.current];
-    setAnalysis(null);
-    setEntries(previous);
+    restore(previous);
     setHistoryVersion((v) => v + 1);
-  }, []);
+  }, [restore]);
 
   const redo = useCallback(() => {
     if (futureRef.current.length === 0) return;
     const next = futureRef.current[futureRef.current.length - 1];
     futureRef.current = futureRef.current.slice(0, -1);
     pastRef.current = [...pastRef.current, entriesRef.current];
-    setAnalysis(null);
-    setEntries(next);
+    restore(next);
     setHistoryVersion((v) => v + 1);
+  }, [restore]);
+
+  // --- Selección de documentos ---
+  const toggleSelected = useCallback((id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   }, []);
+  const selectAll = useCallback(() => setSelectedIds(new Set(entriesRef.current.map((e) => e.id))), []);
+  const selectNone = useCallback(() => setSelectedIds(new Set()), []);
+
+  const selectedEntries = useMemo(
+    () => entries.filter((e) => selectedIds.has(e.id)),
+    [entries, selectedIds]
+  );
 
   const stats = useMemo(
     () => ({
       count: entries.length,
       chars: entries.reduce((sum, e) => sum + e.texto.length, 0),
+      selected: selectedEntries.length,
     }),
-    [entries]
+    [entries, selectedEntries]
   );
 
   const canUndo = pastRef.current.length > 0;
@@ -142,11 +174,11 @@ export function CorpusProvider({ children }) {
 
   const value = useMemo(
     () => ({
-      entries, addEntries, importEntries, removeEntry, clearCorpus, replaceTexts,
+      entries, selectedEntries, selectedIds, toggleSelected, selectAll, selectNone,
+      addEntries, importEntries, removeEntry, clearCorpus, replaceTexts,
       undo, redo, canUndo, canRedo, stats, analysis, setAnalysis,
     }),
-    // historyVersion entra para refrescar canUndo/canRedo (derivados de refs).
-    [entries, addEntries, importEntries, removeEntry, clearCorpus, replaceTexts, undo, redo, canUndo, canRedo, stats, analysis, historyVersion]
+    [entries, selectedEntries, selectedIds, toggleSelected, selectAll, selectNone, addEntries, importEntries, removeEntry, clearCorpus, replaceTexts, undo, redo, canUndo, canRedo, stats, analysis, historyVersion]
   );
 
   return <CorpusContext.Provider value={value}>{children}</CorpusContext.Provider>;

@@ -34,7 +34,7 @@ function Ranking({ title, icon: Icon, items, action }) {
 }
 
 export default function AnalyzePage() {
-  const { entries, analysis, setAnalysis } = useCorpus();
+  const { selectedEntries, analysis, setAnalysis } = useCorpus();
   const { t, lang, setLang, locale } = useI18n();
   const [loading, setLoading] = useState(false);
   const [ngramSize, setNgramSize] = useState(2);
@@ -42,9 +42,10 @@ export default function AnalyzePage() {
   const nameOf = (code) => t(code === "es" ? "español" : "inglés");
 
   const runAnalysis = async (analysisLang = lang) => {
+    if (selectedEntries.length === 0) return toast.warning(t("Selecciona al menos un documento."));
     setLoading(true);
     try {
-      const { data } = await api.post("/analyze", { documents: entries.map((entry) => ({ id: entry.id, text: entry.texto })), lang: analysisLang });
+      const { data } = await api.post("/analyze", { documents: selectedEntries.map((entry) => ({ id: entry.id, text: entry.texto })), lang: analysisLang });
       setAnalysis(data);
       toast.success(data.cached ? t("Análisis recuperado de la caché.") : t("Corpus analizado correctamente."));
     } catch (error) { toast.error(apiErrorMessage(error)); } finally { setLoading(false); }
@@ -63,7 +64,7 @@ export default function AnalyzePage() {
         <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-orange">{t("Fase {n} de 6", { n: 3 })}</p>
         <h2 className="mt-2 font-brand text-3xl font-semibold text-navy dark:text-slate-100">{t("Analizar el corpus")}</h2>
         <p className="mx-auto mb-6 mt-2 max-w-xl text-sm leading-6 text-slate-500 dark:text-slate-400">{t("spaCy etiquetará los textos en {lang} y calculará categorías gramaticales, lemas, n-gramas y métricas léxicas. El resultado queda asociado al contenido exacto del corpus.", { lang: langName })}</p>
-        <div className="mb-6 font-mono text-xs text-slate-400">{t("{n} documentos · {c} caracteres", { n: entries.length, c: entries.reduce((sum, entry) => sum + entry.texto.length, 0).toLocaleString(locale) })}</div>
+        <div className="mb-6 font-mono text-xs text-slate-400">{t("{n} documentos · {c} caracteres", { n: selectedEntries.length, c: selectedEntries.reduce((sum, entry) => sum + entry.texto.length, 0).toLocaleString(locale) })}</div>
         <UiButton onClick={() => runAnalysis()} loading={loading} leftIcon={<Play size={16} />}>{t("Ejecutar análisis")}</UiButton>
       </section>
     );
