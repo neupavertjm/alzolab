@@ -64,7 +64,7 @@ export default function AnalyzePage() {
         <h2 className="mt-2 font-brand text-3xl font-semibold text-navy dark:text-slate-100">{t("Analizar el corpus")}</h2>
         <p className="mx-auto mb-6 mt-2 max-w-xl text-sm leading-6 text-slate-500 dark:text-slate-400">{t("spaCy etiquetará los textos en {lang} y calculará categorías gramaticales, lemas, n-gramas y métricas léxicas. El resultado queda asociado al contenido exacto del corpus.", { lang: langName })}</p>
         <div className="mb-6 font-mono text-xs text-slate-400">{t("{n} documentos · {c} caracteres", { n: entries.length, c: entries.reduce((sum, entry) => sum + entry.texto.length, 0).toLocaleString(locale) })}</div>
-        <UiButton onClick={runAnalysis} loading={loading} leftIcon={<Play size={16} />}>{t("Ejecutar análisis")}</UiButton>
+        <UiButton onClick={() => runAnalysis()} loading={loading} leftIcon={<Play size={16} />}>{t("Ejecutar análisis")}</UiButton>
       </section>
     );
   }
@@ -84,7 +84,7 @@ export default function AnalyzePage() {
           </UiButton>
         </div>
       )}
-      <header className="flex flex-wrap items-end justify-between gap-3"><div><div className="flex items-center gap-2"><h2 className="font-brand text-3xl font-semibold text-navy dark:text-slate-100">{t("Análisis")}</h2>{analysis.cached && <span className="rounded-full bg-emerald-100 px-2 py-1 font-mono text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">{t("caché")}</span>}</div><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t("Modelo {lang} · hash {hash}", { lang: langName, hash: analysis.corpus_hash.slice(0, 10) })}</p></div><UiButton variant="secondary" onClick={runAnalysis} loading={loading} leftIcon={<Play size={15} />}>{t("Recalcular")}</UiButton></header>
+      <header className="flex flex-wrap items-end justify-between gap-3"><div><div className="flex items-center gap-2"><h2 className="font-brand text-3xl font-semibold text-navy dark:text-slate-100">{t("Análisis")}</h2>{analysis.cached && <span className="rounded-full bg-emerald-100 px-2 py-1 font-mono text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">{t("caché")}</span>}</div><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t("Modelo {lang} · hash {hash}", { lang: langName, hash: analysis.corpus_hash.slice(0, 10) })}</p></div><UiButton variant="secondary" onClick={() => runAnalysis()} loading={loading} leftIcon={<Play size={15} />}>{t("Recalcular")}</UiButton></header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <MetricCard label={t("Palabras")} value={analysis.metrics.words.toLocaleString(locale)} note={t("tokens alfabéticos")} />
