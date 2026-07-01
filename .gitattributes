@@ -2,8 +2,9 @@
 * text=auto eol=lf
 
 # Binarios: que Git no toque sus finales de línea.
-*.png binary
 *.jpg binary
 *.ico binary
 *.whl binary
+
+# Imágenes de capturas: almacenadas en Git LFS (GitHub y HF las aceptan así).
 *.png filter=lfs diff=lfs merge=lfs -text
